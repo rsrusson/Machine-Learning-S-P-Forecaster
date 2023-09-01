@@ -218,7 +218,7 @@ prediction_df = pd.DataFrame({'One Day Prediction': [day_prediction],
                               'Six Month Prediction': [six_prediction],
                               'Twelve Month Prediction': [twelve_prediction]
                               })
-prediction_df['Label'] = ['Today\'s Prediction: ']
+prediction_df['Label'] = ['Current Market Prediction: ']
 prediction_df.set_index('Label', inplace=True)
 
 input_df = input_df.values.reshape(1, -1)
@@ -323,7 +323,7 @@ ix.set_xlabel('Correlated Independent Variables')
 ix.set_ylabel('Dependent Variables')
 
 st.write("""
-    # S&P 500 Forecaster
+    # S&P 500 (SPY) Forecaster
 
     This application predicts the S&P 500 via historical SPY data and USA economic data
 """)
@@ -331,12 +331,12 @@ st.write("""
 st.write(
     '''
     ## Predictions by the Models
-    ### User Input: 12 Month Prediction: 
+    ### User Input Prediction: 
     '''
 )
 st.write(user_prediction_df)
 st.write(
-    'Predictions Based off Yesterday\'s Numbers',
+    '### Predictions Based off Current S&P and US Economic Numbers',
     prediction_df,
     '### Errors Rates of Forecasted Variable vs Actual Variable',
     error_df,
@@ -354,3 +354,5 @@ st.pyplot(fig3)
 st.pyplot(fig4)
 st.pyplot(fig5)
 st.pyplot(fig6)
+st.write('All Data')
+st.write(all_df)
