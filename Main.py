@@ -11,9 +11,11 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from datetime import datetime, timedelta
 
+# Initialize current time and turnover time
 current_time = datetime.now()
 turnover_time = current_time.replace(hour=16, minute=0, second=0, microsecond=0)
 
+# Define time ranges for data collection
 start = datetime(2000, 1, 1)
 end = datetime.today()
 start_training = datetime(2000,1,3)
@@ -23,10 +25,12 @@ end_three_month = end - timedelta(days=93)
 end_six_month = end - timedelta(days=184)
 end_twelve_month = end - timedelta(days=366)
 
+# Column names for data frames
 ind_column_names = ['GDP', 'UNRATE', 'CPIAUCNS_x', 'FEDFUNDS', 'CPIAUCNS_y', 'PPIACO',
        'RSAFS', 'Open', 'Close', 'Volume']
 corr_column_names = ['GDP', 'CPIAUCNS_y', 'PPIACO', 'RSAFS', 'Open', 'Close']
 
+# Fetch economic and market data
 gdp = web.DataReader("GDP", "fred", start, end)
 gdp_df = pd.DataFrame(gdp)
 unemployment = web.DataReader("UNRATE", "fred", start, end)
@@ -46,6 +50,7 @@ ticker = "SPY"
 spy_data = yf.download(ticker, start=start, end=end)
 spy_df = pd.DataFrame(spy_data)
 
+# Merge all fetched data into a single DataFrame
 all_df = pd.merge(gdp_df, unemployment_df, left_index=True, right_index=True, how='outer')
 all_df = pd.merge(all_df, inflation_df, left_index=True, right_index=True, how='outer')
 all_df = pd.merge(all_df, interest_rates_df, left_index=True, right_index=True, how='outer')
@@ -53,6 +58,8 @@ all_df = pd.merge(all_df, cpi_df, left_index=True, right_index=True, how='outer'
 all_df = pd.merge(all_df, ppi_df, left_index=True, right_index=True, how='outer')
 all_df = pd.merge(all_df, retail_sales_df, left_index=True, right_index=True, how='outer')
 all_df = pd.merge(all_df, spy_df, left_index=True, right_index=True, how='outer')
+
+# Drop unneeded columns and handle missing data
 all_df.drop('High', axis=1, inplace=True)
 all_df.drop('Low', axis=1, inplace=True)
 all_df.drop('Adj Close', axis=1, inplace=True)
@@ -73,6 +80,7 @@ corr_ind_df = corr_ind_df[start_training:end_one_day]
 
 today = corr_ind_df.iloc[-1].values.reshape(1, -1)
 
+# Sidebar functionality
 st.sidebar.header('User Input for S&P Forecast')
 
 with st.sidebar.form(key='Input'):
@@ -95,6 +103,7 @@ with st.sidebar.form(key='Input'):
     forecast_button = st.form_submit_button(label='Forecast')
 
 
+# Hand user input for sidebar
 def user_input():
     data = {
         'GDP': [gdp_input],
@@ -115,6 +124,7 @@ def user_input():
 input_df = user_input()
 
 
+# Separate the large dataframe into sub dataframes for training on different models
 def separate_dfs(start, end, df, new_y_column):
     this_df = df[start:end]
     all_columns = corr_column_names + [new_y_column]
@@ -130,6 +140,7 @@ three_month_X, three_month_y, three_month_df = separate_dfs(start_training, end_
 six_month_X, six_month_y, six_month_df = separate_dfs(start_training, end_six_month, all_df, 'Six Month\'s Close')
 twelve_month_X, twelve_month_y, twelve_month_df = separate_dfs(start_training, end_twelve_month, all_df, 'Twelve Month\'s Close')
 
+# Create model, create training/test data, and train the model
 model_one_day = RandomForestRegressor(n_estimators=100, random_state=42)
 X_day_train, X_day_test, y_day_train, y_day_test = train_test_split(one_day_X, one_day_y, test_size=0.2, random_state=0)
 model_one_day.fit(X_day_train, y_day_train)
@@ -176,6 +187,7 @@ def r_squared(y_test, y_predicted):
     return r2_score(y_test, y_predicted)
 
 
+# Create predictions, and error data for each model
 y_day_predict = prediction(model_one_day, X_day_test)
 rmse_day = rmse(y_day_test, y_day_predict)
 mae_day = mae(y_day_test, y_day_predict)
@@ -212,6 +224,7 @@ three_prediction = model_three_month.predict(today)
 six_prediction = model_six_month.predict(today)
 twelve_prediction = model_twelve_month.predict(today)
 
+# Place prediction data into one dataframe
 prediction_df = pd.DataFrame({'One Day Prediction': [day_prediction],
                               'One Month Prediction': [month_prediction],
                               'Three Month Prediction': [three_prediction],
@@ -221,6 +234,7 @@ prediction_df = pd.DataFrame({'One Day Prediction': [day_prediction],
 prediction_df['Label'] = ['Current Market Prediction: ']
 prediction_df.set_index('Label', inplace=True)
 
+# Handle the dataframe for the user input prediction
 input_df = input_df.values.reshape(1, -1)
 user_day_prediction = model_one_day.predict(input_df)
 user_month_prediction = model_one_month.predict(input_df)
@@ -237,6 +251,7 @@ user_prediction_df = pd.DataFrame({'One Day Prediction': [user_day_prediction],
 user_prediction_df['Label'] = ['User Input Prediction: ']
 user_prediction_df.set_index('Label', inplace=True)
 
+# Create a dataframe explaining multiple error analytic results to all models
 error_df = pd.DataFrame({'R Squared Error': [r2_day, r2_month, r2_three, r2_six, r2_twelve],
                          'Mean Absolute Percentage Error': [mape_day, mape_month, mape_three, mape_six, mape_twelve],
                          'Root Mean Squared Error': [rmse_day, rmse_month, rmse_three, rmse_six, rmse_twelve],
@@ -245,6 +260,7 @@ error_df = pd.DataFrame({'R Squared Error': [r2_day, r2_month, r2_three, r2_six,
 error_df['Prediction Timeline'] = ['One Day Prediction Errors', 'One Month Prediction Errors', 'Three Month Prediction Errors', 'Six Month Prediction Errors', 'Twelve Month Prediction Errors']
 error_df.set_index('Prediction Timeline', inplace=True)
 
+# Showcase the importance each model places on the independent variables
 importance_2d_array = np.concatenate((model_one_day.feature_importances_.reshape(1, -1),
                                      model_one_month.feature_importances_.reshape(1, -1),
                                      model_three_month.feature_importances_.reshape(1, -1),
@@ -255,6 +271,7 @@ importance_df['Model Time Frame'] = ['1D', '1M', '3M', '6M', '12M']
 importance_df.set_index('Model Time Frame', inplace=True)
 importance_df.columns = corr_column_names
 
+# Create the bar graph
 fig1, ax = plt.subplots()
 for idx, model in enumerate(importance_df.index):
     ax.barh(y=[f"{feature} of {model}" for feature in importance_df.columns],
@@ -266,6 +283,7 @@ ax.set_title('Independent Variable Importance by Model')
 fig1.legend(title='Different Models')
 
 
+# Function to create multiple plots for each model
 def plot_creator(end_time, day_change, timed_df, prediction_col_name, model, title_name):
     fig_num, sub_name = plt.subplots(figsize=(10, 6))
     short_start = end_time - timedelta(days=day_change)
@@ -288,6 +306,7 @@ fig4, dx = plot_creator(end_three_month, 365, three_month_df, 'Three Month\'s Cl
 fig5, ex = plot_creator(end_one_month, 184, one_month_df, 'Next Month\'s Close', model_one_month, '1 Month Actual vs 1 Month Prediction')
 fig6, fx = plot_creator(end_one_day, 92, one_day_df, 'Next Day\'s Close', model_one_day, '1 Day Actual vs 1 Day Prediction')
 
+# Correlation vs Importance bar graph
 correlation_twelve = twelve_month_df.corr().loc['Twelve Month\'s Close']
 correlation_twelve.drop('Twelve Month\'s Close', inplace=True)
 importance_twelve = importance_df.loc['12M']
@@ -310,6 +329,7 @@ corr_matrix = all_df.corr()
 corr_matrix.drop(dep_column_names, axis=1, inplace=True)
 corr_matrix.drop(ind_column_names, axis=0, inplace=True)
 
+# Heatmaps for correlation and model importance
 fig8, hx = plt.subplots(figsize=(12, 6))
 sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt=".2f")
 hx.set_title('Correlation Heatmap')
@@ -322,6 +342,7 @@ ix.set_title('Importance Heatmap')
 ix.set_xlabel('Correlated Independent Variables')
 ix.set_ylabel('Dependent Variables')
 
+# All dashboard information
 st.write("""
     # S&P 500 (SPY) Forecaster
 
