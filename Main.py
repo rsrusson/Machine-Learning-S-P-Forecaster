@@ -356,7 +356,3 @@ st.pyplot(fig5)
 st.pyplot(fig6)
 
 # HELLO HELLO
-'''This work?'''
-#WHat about now
-
-
