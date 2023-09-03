@@ -19,11 +19,11 @@ turnover_time = current_time.replace(hour=16, minute=0, second=0, microsecond=0)
 start = datetime(2000, 1, 1)
 end = datetime.today()
 start_training = datetime(2000,1,3)
-end_one_day = end - timedelta(days=2)
-end_one_month = end - timedelta(days=31)
+end_one_day = end - timedelta(days=1)
+end_one_month = end - timedelta(days=33)
 end_three_month = end - timedelta(days=93)
-end_six_month = end - timedelta(days=184)
-end_twelve_month = end - timedelta(days=366)
+end_six_month = end - timedelta(days=185)
+end_twelve_month = end - timedelta(days=367)
 
 # Column names for data frames
 ind_column_names = ['GDP', 'UNRATE', 'CPIAUCNS_x', 'FEDFUNDS', 'CPIAUCNS_y', 'PPIACO',
@@ -65,7 +65,7 @@ all_df.drop('Low', axis=1, inplace=True)
 all_df.drop('Adj Close', axis=1, inplace=True)
 all_df.fillna(method='ffill', inplace=True)
 all_df['Next Day\'s Close'] = all_df['Close'].shift(-1)
-all_df['Next Month\'s Close'] = all_df['Close'].shift(-22)
+all_df['Next Month\'s Close'] = all_df['Close'].shift(-23)
 all_df['Three Month\'s Close'] = all_df['Close'].shift(-64)
 all_df['Six Month\'s Close'] = all_df['Close'].shift(-129)
 all_df['Twelve Month\'s Close'] = all_df['Close'].shift(-255)
@@ -134,7 +134,9 @@ def separate_dfs(start, end, df, new_y_column):
     return this_df_X, this_df_y, this_df
 
 
-one_day_X, one_day_y, one_day_df = separate_dfs(start_training, end_one_day, all_df, 'Next Day\'s Close')
+special_one_day_df = all_df.iloc[:-1]
+
+one_day_X, one_day_y, one_day_df = separate_dfs(start_training, end_one_day, special_one_day_df, 'Next Day\'s Close')
 one_month_X, one_month_y, one_month_df = separate_dfs(start_training, end_one_month, all_df, 'Next Month\'s Close')
 three_month_X, three_month_y, three_month_df = separate_dfs(start_training, end_three_month, all_df, 'Three Month\'s Close')
 six_month_X, six_month_y, six_month_df = separate_dfs(start_training, end_six_month, all_df, 'Six Month\'s Close')
