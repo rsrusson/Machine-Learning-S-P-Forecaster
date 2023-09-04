@@ -11,9 +11,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from datetime import datetime, timedelta
 
-# Initialize current time and turnover time
+# Initialize current time
 current_time = datetime.now()
-turnover_time = current_time.replace(hour=16, minute=0, second=0, microsecond=0)
 
 # Define time ranges for data collection
 start = datetime(2000, 1, 1)
@@ -29,6 +28,7 @@ end_twelve_month = end - timedelta(days=367)
 ind_column_names = ['GDP', 'UNRATE', 'CPIAUCNS_x', 'FEDFUNDS', 'CPIAUCNS_y', 'PPIACO',
        'RSAFS', 'Open', 'Close', 'Volume']
 corr_column_names = ['GDP', 'CPIAUCNS_y', 'PPIACO', 'RSAFS', 'Open', 'Close']
+dep_column_names = ['Next Day\'s Close', 'Next Month\'s Close', 'Three Month\'s Close', 'Six Month\'s Close', 'Twelve Month\'s Close']
 
 # Fetch economic and market data
 gdp = web.DataReader("GDP", "fred", start, end)
@@ -71,8 +71,6 @@ all_df['Six Month\'s Close'] = all_df['Close'].shift(-129)
 all_df['Twelve Month\'s Close'] = all_df['Close'].shift(-255)
 all_df.index.name = 'Date'
 
-dep_column_names = ['Next Day\'s Close', 'Next Month\'s Close', 'Three Month\'s Close', 'Six Month\'s Close', 'Twelve Month\'s Close']
-
 ind_df = all_df[ind_column_names]
 ind_df = ind_df[start_training:end_one_day]
 corr_ind_df = all_df[corr_column_names]
@@ -92,14 +90,11 @@ with st.sidebar.form(key='Input'):
     today_open = today_data['Open']
     today_close = today_data['Close']
     gdp_input = st.sidebar.number_input(f'US Gross Domestic Product Ex: {today_gdp}')
-    #unemployment_input = st.sidebar.number_input('US Unemployment Rate')
     cpi_input = st.sidebar.number_input(f'US Consumer Price Index Ex: {today_cpi}')
-    #fed_funds_input = st.sidebar.number_input('US Federal Fund Interest Rate')
     ppi_input = st.sidebar.number_input(f'Producer Price Index Ex: {today_ppi}')
     retail_sales_input = st.sidebar.number_input(f'US Retail Sales Ex: {today_retail_sales}')
     prev_open_input = st.sidebar.number_input(f'Previous S&P 500 Open Ex: {today_open}')
     prev_close_input = st.sidebar.number_input(f'Previous S&P 500 Close Ex: {today_close}')
-    #volume_input = st.sidebar.number_input('Previous S&P 500 Volume')
     forecast_button = st.form_submit_button(label='Forecast')
 
 
@@ -107,15 +102,11 @@ with st.sidebar.form(key='Input'):
 def user_input():
     data = {
         'GDP': [gdp_input],
-        # 'UNRATE': [unemployment_input],
-        # 'CPIAUCNS_x': [cpi_input],
-        # 'FEDFUNDS': [fed_funds_input],
         'CPIAUCNS_y': [cpi_input],
         'PPIACO': [ppi_input],
         'RSAFS': [retail_sales_input],
         'Open': [prev_open_input],
-        'Close': [prev_close_input],
-        # 'Volume': [volume_input]
+        'Close': [prev_close_input]
     }
     data_df = pd.DataFrame(data)
     return data_df
@@ -136,32 +127,26 @@ def separate_dfs(start, end, df, new_y_column):
 
 special_one_day_df = all_df.iloc[:-1]
 
-one_day_X, one_day_y, one_day_df = separate_dfs(start_training, end_one_day, special_one_day_df, 'Next Day\'s Close')
-one_month_X, one_month_y, one_month_df = separate_dfs(start_training, end_one_month, all_df, 'Next Month\'s Close')
-three_month_X, three_month_y, three_month_df = separate_dfs(start_training, end_three_month, all_df, 'Three Month\'s Close')
-six_month_X, six_month_y, six_month_df = separate_dfs(start_training, end_six_month, all_df, 'Six Month\'s Close')
-twelve_month_X, twelve_month_y, twelve_month_df = separate_dfs(start_training, end_twelve_month, all_df, 'Twelve Month\'s Close')
+one_day_X, one_day_y, one_day_df = separate_dfs(start_training, end_one_day, special_one_day_df, dep_column_names[0])
+one_month_X, one_month_y, one_month_df = separate_dfs(start_training, end_one_month, all_df, dep_column_names[1])
+three_month_X, three_month_y, three_month_df = separate_dfs(start_training, end_three_month, all_df, dep_column_names[2])
+six_month_X, six_month_y, six_month_df = separate_dfs(start_training, end_six_month, all_df, dep_column_names[3])
+twelve_month_X, twelve_month_y, twelve_month_df = separate_dfs(start_training, end_twelve_month, all_df, dep_column_names[4])
+
 
 # Create model, create training/test data, and train the model
-model_one_day = RandomForestRegressor(n_estimators=100, random_state=42)
-X_day_train, X_day_test, y_day_train, y_day_test = train_test_split(one_day_X, one_day_y, test_size=0.2, random_state=0)
-model_one_day.fit(X_day_train, y_day_train)
+def model_creator_trainer(model_name, df_X, df_y, ):
+    model_final = model_name(n_estimators=100, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(df_X, df_y, test_size=0.2, random_state=0)
+    model_final.fit(X_train, y_train)
+    return model_final, X_train, X_test, y_train, y_test
 
-model_one_month = RandomForestRegressor(n_estimators=100, random_state=42)
-X_month_train, X_month_test, y_month_train, y_month_test = train_test_split(one_month_X, one_month_y, test_size=0.2, random_state=0)
-model_one_month.fit(X_month_train, y_month_train)
 
-model_three_month = RandomForestRegressor(n_estimators=100, random_state=42)
-X_three_train, X_three_test, y_three_train, y_three_test = train_test_split(three_month_X, three_month_y, test_size=0.2, random_state=0)
-model_three_month.fit(X_three_train, y_three_train)
-
-model_six_month = RandomForestRegressor(n_estimators=100, random_state=42)
-X_six_train, X_six_test, y_six_train, y_six_test = train_test_split(six_month_X, six_month_y, test_size=0.2, random_state=0)
-model_six_month.fit(X_six_train, y_six_train)
-
-model_twelve_month = RandomForestRegressor(n_estimators=100, random_state=42)
-X_twelve_train, X_twelve_test, y_twelve_train, y_twelve_test = train_test_split(twelve_month_X, twelve_month_y, test_size=0.2, random_state=0)
-model_twelve_month.fit(X_twelve_train, y_twelve_train)
+model_one_day, X_day_train, X_day_test, y_day_train, y_day_test = model_creator_trainer(RandomForestRegressor, one_day_X, one_day_y)
+model_one_month, X_month_train, X_month_test, y_month_train, y_month_test = model_creator_trainer(RandomForestRegressor, one_month_X, one_month_y)
+model_three_month, X_three_train, X_three_test, y_three_train, y_three_test = model_creator_trainer(RandomForestRegressor, three_month_X, three_month_y)
+model_six_month, X_six_train, X_six_test, y_six_train, y_six_test = model_creator_trainer(RandomForestRegressor, six_month_X, six_month_y)
+model_twelve_month, X_twelve_train, X_twelve_test, y_twelve_train, y_twelve_test = model_creator_trainer(RandomForestRegressor, twelve_month_X, twelve_month_y)
 
 model_list = [model_one_day, model_one_month, model_three_month, model_six_month, model_twelve_month]
 
@@ -190,35 +175,21 @@ def r_squared(y_test, y_predicted):
 
 
 # Create predictions, and error data for each model
-y_day_predict = prediction(model_one_day, X_day_test)
-rmse_day = rmse(y_day_test, y_day_predict)
-mae_day = mae(y_day_test, y_day_predict)
-mape_day = mape(y_day_test, y_day_predict)
-r2_day = r_squared(y_day_test, y_day_predict)
+def predict_and_test(model, X_test, y_test):
+    y_predict = prediction(model, X_test)
+    rmse_res = rmse(y_test, y_predict)
+    mae_res = mae(y_test, y_predict)
+    mape_res = mape(y_test, y_predict)
+    r2 = r_squared(y_test, y_predict)
+    return y_predict, rmse_res, mae_res, mape_res, r2
 
-y_month_predict = prediction(model_one_month, X_month_test)
-rmse_month = rmse(y_month_test, y_month_predict)
-mae_month = mae(y_month_test, y_month_predict)
-mape_month = mape(y_month_test, y_month_predict)
-r2_month = r_squared(y_month_test, y_month_predict)
 
-y_three_predict = prediction(model_three_month, X_three_test)
-rmse_three = rmse(y_three_test, y_three_predict)
-mae_three = mae(y_three_test, y_three_predict)
-mape_three = mape(y_three_test, y_three_predict)
-r2_three = r_squared(y_three_test, y_three_predict)
+y_day_predict, rmse_day, mae_day, mape_day, r2_day = predict_and_test(model_one_day, X_day_test, y_day_test)
+y_month_predict, rmse_month, mae_month, mape_month, r2_month = predict_and_test(model_one_month, X_month_test, y_month_test)
+y_three_predict, rmse_three, mae_three, mape_three, r2_three = predict_and_test(model_three_month, X_three_test, y_three_test)
+y_six_predict, rmse_six, mae_six, mape_six, r2_six = predict_and_test(model_six_month, X_six_test, y_six_test)
+y_twelve_predict, rmse_twelve, mae_twelve, mape_twelve, r2_twelve = predict_and_test(model_twelve_month, X_twelve_test, y_twelve_test)
 
-y_six_predict = prediction(model_six_month, X_six_test)
-rmse_six = rmse(y_six_test, y_six_predict)
-mae_six = mae(y_six_test, y_six_predict)
-mape_six = mape(y_six_test, y_six_predict)
-r2_six = r_squared(y_six_test, y_six_predict)
-
-y_twelve_predict = prediction(model_twelve_month, X_twelve_test)
-rmse_twelve = rmse(y_twelve_test, y_twelve_predict)
-mae_twelve = mae(y_twelve_test, y_twelve_predict)
-mape_twelve = mape(y_twelve_test, y_twelve_predict)
-r2_twelve = r_squared(y_twelve_test, y_twelve_predict)
 
 day_prediction = model_one_day.predict(today)
 month_prediction = model_one_month.predict(today)
@@ -286,7 +257,7 @@ fig1.legend(title='Different Models')
 
 
 # Function to create multiple plots for each model
-def plot_creator(end_time, day_change, timed_df, prediction_col_name, model, title_name):
+def compared_plot_creator(end_time, day_change, timed_df, prediction_col_name, model, title_name):
     fig_num, sub_name = plt.subplots(figsize=(10, 6))
     short_start = end_time - timedelta(days=day_change)
     short_start = short_start.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -302,11 +273,49 @@ def plot_creator(end_time, day_change, timed_df, prediction_col_name, model, tit
     return fig_num, sub_name
 
 
-fig2, bx = plot_creator(end_twelve_month, 365, twelve_month_df, 'Twelve Month\'s Close', model_twelve_month, '12 Month Actual vs 12 Month Prediction')
-fig3, cx = plot_creator(end_six_month, 365, six_month_df, 'Six Month\'s Close', model_six_month, '6 Month Actual vs 6 Month Prediction')
-fig4, dx = plot_creator(end_three_month, 365, three_month_df, 'Three Month\'s Close', model_three_month, '3 Month Actual vs 3 Month Prediction')
-fig5, ex = plot_creator(end_one_month, 184, one_month_df, 'Next Month\'s Close', model_one_month, '1 Month Actual vs 1 Month Prediction')
-fig6, fx = plot_creator(end_one_day, 92, one_day_df, 'Next Day\'s Close', model_one_day, '1 Day Actual vs 1 Day Prediction')
+# Actual vs Predicted Plot Maps
+fig2, bx = compared_plot_creator(end_twelve_month, 365, twelve_month_df, 'Twelve Month\'s Close', model_twelve_month, '12 Month Actual vs 12 Month Prediction')
+fig3, cx = compared_plot_creator(end_six_month, 365, six_month_df, 'Six Month\'s Close', model_six_month, '6 Month Actual vs 6 Month Prediction')
+fig4, dx = compared_plot_creator(end_three_month, 365, three_month_df, 'Three Month\'s Close', model_three_month, '3 Month Actual vs 3 Month Prediction')
+fig5, ex = compared_plot_creator(end_one_month, 184, one_month_df, 'Next Month\'s Close', model_one_month, '1 Month Actual vs 1 Month Prediction')
+fig6, fx = compared_plot_creator(end_one_day, 92, one_day_df, 'Next Day\'s Close', model_one_day, '1 Day Actual vs 1 Day Prediction')
+
+# Future Dates for Prediction Data
+future_start = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+future_end = future_start + timedelta(days=365)
+current_date = future_start
+future_date_list = []
+while current_date < future_end:
+    future_date_list.append(current_date)
+    current_date += timedelta(days=1)
+
+# Plot with Future Prediction for 12 Month Model
+fig10, jx = plt.subplots(figsize=(10, 6))
+future_twelve_df = corr_ind_df.iloc[-510:-1]
+future_twelve_df.index = future_twelve_df.index + pd.DateOffset(years=1)
+actual_twelve_df = all_df[-510:-1]
+actual_twelve_df.index = actual_twelve_df.index + pd.DateOffset(years=1)
+jx.grid(True, linestyle='--', linewidth=0.5, color='gray')
+jx.plot(actual_twelve_df.index, actual_twelve_df[['Twelve Month\'s Close']], label='Actual Price', linewidth=2)
+jx.plot(future_twelve_df.index, prediction(model_twelve_month, future_twelve_df), label='Future Forecast', linewidth=2, linestyle='--')
+jx.set_xlabel('Time')
+jx.set_ylabel('S&P Close')
+jx.set_title('Future 12 Month Prediction')
+fig10.legend(title='Future 12 Month Prediction')
+
+# Plot with Future Prediction for 6 Month Model
+fig11, kx = plt.subplots(figsize=(10, 6))
+future_six_df = corr_ind_df.iloc[-255:-1]
+future_six_df.index = future_six_df.index + pd.DateOffset(days=183)
+actual_six_df = all_df[-255:-1]
+actual_six_df.index = actual_six_df.index + pd.DateOffset(days=183)
+kx.grid(True, linestyle='--', linewidth=0.5, color='gray')
+kx.plot(actual_six_df.index, actual_six_df[['Six Month\'s Close']], label='Actual Price', linewidth=2)
+kx.plot(future_six_df.index, prediction(model_six_month, future_six_df), label='Future Forecast', linewidth=2, linestyle='--')
+kx.set_xlabel('Time')
+kx.set_ylabel('S&P Close')
+kx.set_title('Future Six Month Prediction')
+fig11.legend(title='Future Six Month Prediction')
 
 # Correlation vs Importance bar graph
 correlation_twelve = twelve_month_df.corr().loc['Twelve Month\'s Close']
@@ -327,6 +336,7 @@ gx.set_xticklabels(corr_column_names)
 fig7.legend()
 fig7.tight_layout()
 
+# Clean up correlation dataframe
 corr_matrix = all_df.corr()
 corr_matrix.drop(dep_column_names, axis=1, inplace=True)
 corr_matrix.drop(ind_column_names, axis=0, inplace=True)
@@ -338,11 +348,27 @@ hx.set_title('Correlation Heatmap')
 hx.set_xlabel('Independent Variables')
 hx.set_ylabel('Dependent Variables')
 
+# Importance heat map
 fig9, ix = plt.subplots(figsize=(12, 6))
 sns.heatmap(importance_df, annot=True, cmap='coolwarm', fmt=".2f")
 ix.set_title('Importance Heatmap')
 ix.set_xlabel('Correlated Independent Variables')
 ix.set_ylabel('Dependent Variables')
+
+
+# Scatter Correlations creation
+def scatter_correlation(x_axis_name, y_axis_name):
+    fig, xx = plt.subplots(figsize=(10, 6))
+    xx.scatter(all_df[x_axis_name], all_df[y_axis_name], c='blue')
+    xx.set_xlabel(x_axis_name)
+    xx.set_ylabel(y_axis_name)
+    xx.set_title('Scatterplot')
+    return fig, xx
+
+
+fig12, lx = scatter_correlation(corr_column_names[0], dep_column_names[4])
+fig13, mx = scatter_correlation(corr_column_names[1], dep_column_names[4])
+fig14, nx = scatter_correlation(corr_column_names[3], dep_column_names[4])
 
 # All dashboard information
 st.write("""
@@ -368,14 +394,19 @@ st.write(
     '### How Much Importance The Model Has Placed on Each Independent Variable',
     importance_df,
  )
+st.pyplot(fig12)
+st.pyplot(fig13)
+st.pyplot(fig14)
 st.pyplot(fig8)
 st.pyplot(fig9)
 st.pyplot(fig7)
 #st.pyplot(fig1)
 st.pyplot(fig2)
-st.pyplot(fig3)
-st.pyplot(fig4)
-st.pyplot(fig5)
-st.pyplot(fig6)
+#st.pyplot(fig3)
+#st.pyplot(fig4)
+#st.pyplot(fig5)
+#st.pyplot(fig6)
+st.pyplot(fig10)
+st.pyplot(fig11)
 st.write('All Data')
 st.write(all_df)
