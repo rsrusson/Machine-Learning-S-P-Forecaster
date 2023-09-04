@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9be4ab88-9630-454e-9e41-2c907fa00b14" name="Changes" comment="Machine Learning S&amp;P Forecaster Time Issue - Commit 5">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
-    </list>
+    <list default="true" id="9be4ab88-9630-454e-9e41-2c907fa00b14" name="Changes" comment="Cleaned Up some dirty code - Commit 5" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -144,7 +140,15 @@
       <option name="project" value="LOCAL" />
       <updated>1693760363219</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Cleaned Up some dirty code - Commit 5">
+      <option name="closed" value="true" />
+      <created>1693788377122</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1693788377123</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -179,7 +183,8 @@
     <MESSAGE value="Machine Learning S&amp;P Forecaster Finished - Commit 4" />
     <MESSAGE value="Machine Learning S&amp;P Forecaster Finished Comments - Commit 4" />
     <MESSAGE value="Machine Learning S&amp;P Forecaster Time Issue - Commit 5" />
-    <option name="LAST_COMMIT_MESSAGE" value="Machine Learning S&amp;P Forecaster Time Issue - Commit 5" />
+    <MESSAGE value="Cleaned Up some dirty code - Commit 5" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleaned Up some dirty code - Commit 5" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
