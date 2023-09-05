@@ -19,10 +19,16 @@ start = datetime(2000, 1, 1)
 end = datetime.today()
 start_training = datetime(2000,1,3)
 end_one_day = end - timedelta(days=1)
-end_one_month = end - timedelta(days=33)
-end_three_month = end - timedelta(days=93)
-end_six_month = end - timedelta(days=185)
-end_twelve_month = end - timedelta(days=367)
+end_one_month = end - timedelta(days=31)
+end_three_month = end - timedelta(days=92)
+end_six_month = end - timedelta(days=183)
+end_twelve_month = end - timedelta(days=365)
+
+day_shift = -1
+month_shift = -23
+three_shift = -64
+six_shift = -129
+twelve_shift = -255
 
 # Column names for data frames
 ind_column_names = ['GDP', 'UNRATE', 'CPIAUCNS_x', 'FEDFUNDS', 'CPIAUCNS_y', 'PPIACO',
@@ -125,13 +131,17 @@ def separate_dfs(start, end, df, new_y_column):
     return this_df_X, this_df_y, this_df
 
 
-special_one_day_df = all_df.iloc[:-1]
+special_one_day_df = all_df.iloc[:day_shift]
+special_one_month_df = all_df.iloc[:month_shift]
+special_three_df = all_df.iloc[:three_shift]
+special_six_df = all_df.iloc[:six_shift]
+special_twelve_df = all_df.iloc[:twelve_shift]
 
 one_day_X, one_day_y, one_day_df = separate_dfs(start_training, end_one_day, special_one_day_df, dep_column_names[0])
-one_month_X, one_month_y, one_month_df = separate_dfs(start_training, end_one_month, all_df, dep_column_names[1])
-three_month_X, three_month_y, three_month_df = separate_dfs(start_training, end_three_month, all_df, dep_column_names[2])
-six_month_X, six_month_y, six_month_df = separate_dfs(start_training, end_six_month, all_df, dep_column_names[3])
-twelve_month_X, twelve_month_y, twelve_month_df = separate_dfs(start_training, end_twelve_month, all_df, dep_column_names[4])
+one_month_X, one_month_y, one_month_df = separate_dfs(start_training, end_one_month, special_one_month_df, dep_column_names[1])
+three_month_X, three_month_y, three_month_df = separate_dfs(start_training, end_three_month, special_three_df, dep_column_names[2])
+six_month_X, six_month_y, six_month_df = separate_dfs(start_training, end_six_month, special_six_df, dep_column_names[3])
+twelve_month_X, twelve_month_y, twelve_month_df = separate_dfs(start_training, end_twelve_month, special_twelve_df, dep_column_names[4])
 
 
 # Create model, create training/test data, and train the model
