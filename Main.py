@@ -146,7 +146,7 @@ twelve_month_X, twelve_month_y, twelve_month_df = separate_dfs(start_training, e
 
 # Create model, create training/test data, and train the model
 def model_creator_trainer(model_name, df_X, df_y, ):
-    model_final = model_name(n_estimators=100, random_state=42)
+    model_final = model_name(n_estimators=200, random_state=42)
     X_train, X_test, y_train, y_test = train_test_split(df_X, df_y, test_size=0.2, random_state=0)
     model_final.fit(X_train, y_train)
     return model_final, X_train, X_test, y_train, y_test
@@ -303,11 +303,23 @@ while current_date < future_end:
 fig10, jx = plt.subplots(figsize=(10, 6))
 future_twelve_df = corr_ind_df.iloc[-510:-1]
 future_twelve_df.index = future_twelve_df.index + pd.DateOffset(years=1)
+future_six_df = corr_ind_df.iloc[-258:-1]
+future_six_df.index = future_six_df.index + pd.DateOffset(months=6)
+future_three_df = corr_ind_df.iloc[-128:-1]
+future_three_df.index = future_three_df.index + pd.DateOffset(months=3)
+future_month_df = corr_ind_df.iloc[-46:-1]
+future_month_df.index = future_month_df.index + pd.DateOffset(months=1)
+future_day_df = corr_ind_df.iloc[-2:-1]
+future_day_df.index = future_day_df.index + pd.DateOffset(days=1)
 actual_twelve_df = all_df[-510:-1]
 actual_twelve_df.index = actual_twelve_df.index + pd.DateOffset(years=1)
 jx.grid(True, linestyle='--', linewidth=0.5, color='gray')
 jx.plot(actual_twelve_df.index, actual_twelve_df[['Twelve Month\'s Close']], label='Actual Price', linewidth=2)
-jx.plot(future_twelve_df.index, prediction(model_twelve_month, future_twelve_df), label='Future Forecast', linewidth=2, linestyle='--')
+jx.plot(future_twelve_df.index, prediction(model_twelve_month, future_twelve_df), label='12 M', linewidth=2, linestyle='--')
+jx.plot(future_six_df.index, prediction(model_six_month, future_six_df), label='6 M', linewidth=2, linestyle='--')
+jx.plot(future_three_df.index, prediction(model_three_month, future_three_df), label='3 M', linewidth=2, linestyle='--')
+'''jx.plot(future_month_df.index, prediction(model_one_month, future_month_df), label='1 M', linewidth=2, linestyle='--')
+jx.plot(future_day_df.index, prediction(model_one_day, future_day_df), label='1 D', linewidth=2, linestyle='--')'''
 jx.set_xlabel('Time')
 jx.set_ylabel('S&P Close')
 jx.set_title('Future 12 Month Prediction')
