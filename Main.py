@@ -11,6 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from datetime import datetime, timedelta
 
+
 # Initialize current time
 current_time = datetime.now()
 
@@ -82,7 +83,7 @@ ind_df = ind_df[start_training:end_one_day]
 corr_ind_df = all_df[corr_column_names]
 corr_ind_df = corr_ind_df[start_training:end_one_day]
 
-today = corr_ind_df.iloc[-1].values.reshape(1, -1)
+today = all_df.iloc[-1][corr_column_names].values.reshape(1, -1)
 
 # Sidebar functionality
 st.sidebar.header('User Input for S&P Forecast')
@@ -309,17 +310,17 @@ future_three_df = corr_ind_df.iloc[-128:-1]
 future_three_df.index = future_three_df.index + pd.DateOffset(months=3)
 future_month_df = corr_ind_df.iloc[-46:-1]
 future_month_df.index = future_month_df.index + pd.DateOffset(months=1)
-future_day_df = corr_ind_df.iloc[-2:-1]
+future_day_df = corr_ind_df.iloc[-100:-1]
 future_day_df.index = future_day_df.index + pd.DateOffset(days=1)
-actual_twelve_df = all_df[-510:-1]
+actual_twelve_df = all_df[-400:-1]
 actual_twelve_df.index = actual_twelve_df.index + pd.DateOffset(years=1)
 jx.grid(True, linestyle='--', linewidth=0.5, color='gray')
 jx.plot(actual_twelve_df.index, actual_twelve_df[['Twelve Month\'s Close']], label='Actual Price', linewidth=2)
-jx.plot(future_twelve_df.index, prediction(model_twelve_month, future_twelve_df), label='12 M', linewidth=2, linestyle='--')
-jx.plot(future_six_df.index, prediction(model_six_month, future_six_df), label='6 M', linewidth=2, linestyle='--')
-jx.plot(future_three_df.index, prediction(model_three_month, future_three_df), label='3 M', linewidth=2, linestyle='--')
-'''jx.plot(future_month_df.index, prediction(model_one_month, future_month_df), label='1 M', linewidth=2, linestyle='--')
-jx.plot(future_day_df.index, prediction(model_one_day, future_day_df), label='1 D', linewidth=2, linestyle='--')'''
+jx.plot(future_twelve_df.index, prediction(model_twelve_month, future_twelve_df), label='12 M', linewidth=1, linestyle='--')
+'''jx.plot(future_six_df.index, prediction(model_six_month, future_six_df), label='6 M', linewidth=1, linestyle='--')
+jx.plot(future_three_df.index, prediction(model_three_month, future_three_df), label='3 M', linewidth=1, linestyle='--')
+jx.plot(future_day_df.index, prediction(model_one_day, future_day_df), label='1 D', linewidth=1, linestyle='--')'''
+
 jx.set_xlabel('Time')
 jx.set_ylabel('S&P Close')
 jx.set_title('Future 12 Month Prediction')
@@ -392,6 +393,22 @@ fig12, lx = scatter_correlation(corr_column_names[0], dep_column_names[4])
 fig13, mx = scatter_correlation(corr_column_names[1], dep_column_names[4])
 fig14, nx = scatter_correlation(corr_column_names[3], dep_column_names[4])
 
+predictions_12 = prediction(model_twelve_month, all_df.iloc[1:][corr_column_names])
+predictions_6 = prediction(model_six_month, all_df.iloc[1:][corr_column_names])
+predictions_3 = prediction(model_three_month, all_df.iloc[1:][corr_column_names])
+predictions_1 = prediction(model_one_month, all_df.iloc[1:][corr_column_names])
+predictions_day = prediction(model_one_day, all_df.iloc[1:][corr_column_names])
+
+full_prediction_df = pd.DataFrame({'One Day Prediction': predictions_day,
+                              'One Month Prediction': predictions_1,
+                              'Three Month Prediction': predictions_3,
+                              'Six Month Prediction': predictions_6,
+                              'Twelve Month Prediction': predictions_12,
+                              'Date': all_df.iloc[1:].index
+                              })
+full_prediction_df.set_index('Date', inplace=True)
+
+
 # All dashboard information
 st.write("""
     # S&P 500 (SPY) Forecaster
@@ -431,4 +448,6 @@ st.pyplot(fig2)
 st.pyplot(fig10)
 st.pyplot(fig11)
 st.write('All Data')
+st.write(full_prediction_df)
 st.write(all_df)
+
