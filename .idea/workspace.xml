@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9be4ab88-9630-454e-9e41-2c907fa00b14" name="Changes" comment="Added optional visuals - Commit 7">
+    <list default="true" id="9be4ab88-9630-454e-9e41-2c907fa00b14" name="Changes" comment="Fine Tuned Model Settings - Commit 9">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
     </list>
@@ -175,7 +176,15 @@
       <option name="project" value="LOCAL" />
       <updated>1694188788707</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Fine Tuned Model Settings - Commit 9">
+      <option name="closed" value="true" />
+      <created>1695140086258</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1695140086258</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -213,7 +222,8 @@
     <MESSAGE value="Cleaned Up some dirty code - Commit 5" />
     <MESSAGE value="Fixed some date problems - Commit 6" />
     <MESSAGE value="Added optional visuals - Commit 7" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added optional visuals - Commit 7" />
+    <MESSAGE value="Fine Tuned Model Settings - Commit 9" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fine Tuned Model Settings - Commit 9" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -222,6 +232,11 @@
           <url>file://$PROJECT_DIR$/Main.py</url>
           <line>134</line>
           <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Main.py</url>
+          <line>304</line>
+          <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
